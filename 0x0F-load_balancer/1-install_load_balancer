@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
-# Configures a new Ubuntu server with a HAproxy load-balancer
+# Script that configures HAproxy in a load balancer 
 sudo apt-get -y install software-properties-common
+sudo add-apt-repository -y ppa:vbernat/haproxy-2.0
 sudo apt-get -y update
-sudo apt-get -y install haproxy
-sudo sed -i '/errorfile 504/a listen thelaura' /etc/haproxy/haproxy.cfg
-sudo sed -i '/listen thelaura/a         bind :80' /etc/haproxy/haproxy.cfg
-sudo sed -i '/bind :80/a         mode http' /etc/haproxy/haproxy.cfg
-sudo sed -i '/mode http/a         server 2983-web-01 44.200.193.76 check' /etc/haproxy/haproxy.cfg
-sudo sed -i '/server 2983-web-01 44.200.193.76:80 check/a         server 2983-web-02 18.204.1.201:80 check' /etc/haproxy/haproxy.cfg
-sudo sed -i '/#EXTRAOPTS="-de -m 16"/a ENABLED=1' /etc/default/haproxy
-sudo sed -i "$ a\listen load_balancer 0.0.0.0:80\n\tmode http\n\tbalance roundrobin\n\toption forwardfor\n\toption httpclose\n\tserver 2983-web-01 44.200.193.76:80 check\n\tserver 2983-web-02 18.204.1.201:80 check" /etc/haproxy/haproxy.cfg
-sudo service haproxy start
+sudo apt-get -y install haproxy=2.0.\*
+echo -e "\nfrontend http\n\tbind *:80\n\tmode http\n\tdefault_backend web-backend\n\nbackend web-backend\n\tbalance roundrobin\n\tserver 2983-web-01 44.200.193.76:80 check\n\tserver 2983-web-02 18.204.1.201:80 check" >> /etc/haproxy/haproxy.cfg
+service haproxy restart
